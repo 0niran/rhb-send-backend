@@ -426,7 +426,11 @@ class CampaignController {
         });
       }
 
-      const result = await this.database.processInboundMessage(phoneNumber, messageBody);
+      // Normalize phone number to match stored format
+      const normalizedPhoneNumber = this.smsService.formatPhoneNumber(phoneNumber);
+      console.log('Phone number normalized from', phoneNumber, 'to', normalizedPhoneNumber); // Debug log
+
+      const result = await this.database.processInboundMessage(normalizedPhoneNumber, messageBody);
       console.log('Database processing result:', result); // Debug log
 
       if (result.handled) {
