@@ -2,19 +2,7 @@
   "version": 2,
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "env": {
-    "TWILIO_ACCOUNT_SID": "@twilio-account-sid",
-    "TWILIO_AUTH_TOKEN": "@twilio-auth-token",
-    "TWILIO_PHONE_NUMBER": "@twilio-phone-number"
-  },
-  "build": {
-    "env": {
-      "TWILIO_ACCOUNT_SID": "@twilio-account-sid",
-      "TWILIO_AUTH_TOKEN": "@twilio-auth-token",
-      "TWILIO_PHONE_NUMBER": "@twilio-phone-number"
+      "runtime": "nodejs20.x"
     }
   }
 }

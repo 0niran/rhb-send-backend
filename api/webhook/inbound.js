@@ -16,7 +16,7 @@ async function initializeServices() {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     // Only allow POST requests
     if (req.method !== 'POST') {
