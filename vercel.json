@@ -1,8 +1,14 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
+  "headers": [
+    {
+      "source": "/api/webhook/(.*)",
+      "headers": [
+        {
+          "key": "x-vercel-skip-protection",
+          "value": "1"
+        }
+      ]
     }
-  }
+  ]
 }

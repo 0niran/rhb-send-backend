@@ -1,5 +1,5 @@
 // Vercel API endpoint for RHB Send webhook
-const Database = require('../../src/models/database');
+const VercelDatabase = require('../../src/models/vercelDatabase');
 const SMSService = require('../../src/utils/smsService');
 
 // Initialize services
@@ -8,7 +8,7 @@ let smsService = null;
 
 async function initializeServices() {
   if (!database) {
-    database = new Database();
+    database = new VercelDatabase();
     await database.init();
   }
   if (!smsService) {
