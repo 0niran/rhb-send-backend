@@ -1,4 +1,4 @@
-const { createConnection } = require('mysql2/promise');
+// Using in-memory storage for serverless compatibility
 
 class VercelDatabase {
   constructor() {
