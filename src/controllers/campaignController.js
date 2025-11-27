@@ -436,8 +436,15 @@ class CampaignController {
       if (result.handled) {
         // Send automated response
         if (result.responseMessage) {
+          console.log('=== SENDING AUTOMATED RESPONSE ===');
+          console.log('To:', phoneNumber);
+          console.log('Message:', result.responseMessage);
+          console.log('Campaign ID:', result.campaignId);
           try {
-            await this.smsService.sendSMS(phoneNumber, result.responseMessage);
+            console.log('Calling SMS service...');
+            const smsResult = await this.smsService.sendSMS(phoneNumber, result.responseMessage);
+            console.log('SMS service result:', smsResult);
+            console.log('✅ Automated response sent successfully');
 
             // Log the outbound response
             await this.database.logMessage(
@@ -445,12 +452,15 @@ class CampaignController {
               phoneNumber,
               'outbound',
               result.responseMessage,
-              null,
+              smsResult.sid,
               'sent'
             );
           } catch (smsError) {
-            console.error('Failed to send automated response:', smsError);
+            console.error('❌ Failed to send automated response:', smsError);
+            console.error('Error details:', smsError.stack);
           }
+        } else {
+          console.log('❌ No response message found');
         }
 
         res.json({
