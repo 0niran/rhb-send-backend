@@ -171,11 +171,36 @@ class SMSService {
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
       console.log(`SMS Service - Formatted phone number: "${formattedNumber}"`);
 
-      const result = await this.client.messages.create({
-        body: message,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: formattedNumber
-      });
+      console.log('🔄 Attempting to send SMS via Twilio API...');
+      console.log('SMS Details:');
+      console.log(`  - To: ${formattedNumber}`);
+      console.log(`  - From: ${process.env.TWILIO_PHONE_NUMBER}`);
+      console.log(`  - Message: ${message}`);
+      console.log(`  - Account SID: ${process.env.TWILIO_ACCOUNT_SID?.substring(0, 10)}...`);
+
+      let result;
+      try {
+        result = await this.client.messages.create({
+          body: message,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: formattedNumber
+        });
+
+        console.log('✅ SMS sent successfully!');
+        console.log('Twilio Response:');
+        console.log(`  - SID: ${result.sid}`);
+        console.log(`  - Status: ${result.status}`);
+        console.log(`  - To: ${result.to}`);
+        console.log(`  - From: ${result.from}`);
+      } catch (twilioError) {
+        console.error('❌ Twilio API Error:');
+        console.error('  - Error Code:', twilioError.code);
+        console.error('  - Error Message:', twilioError.message);
+        console.error('  - More Info:', twilioError.moreInfo);
+        console.error('  - Status:', twilioError.status);
+        console.error('  - Stack:', twilioError.stack);
+        throw twilioError;
+      }
 
       return {
         sid: result.sid,
