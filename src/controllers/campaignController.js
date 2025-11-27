@@ -41,6 +41,10 @@ class CampaignController {
       console.log('campaign_name:', campaign_name);
       console.log('message_content:', message_content);
       console.log('sender_id:', sender_id);
+      console.log('response_mode:', response_mode);
+      console.log('yes_response:', yes_response);
+      console.log('no_response:', no_response);
+      console.log('invalid_response:', invalid_response);
       console.log('recipients:', recipients);
       console.log('recipients type:', typeof recipients);
       console.log('recipients length:', recipients?.length);
@@ -440,6 +444,20 @@ class CampaignController {
           console.log('To:', phoneNumber);
           console.log('Message:', result.responseMessage);
           console.log('Campaign ID:', result.campaignId);
+
+          // Check if we've already sent a response for this message
+          const messageId = req.body.MessageSid;
+          if (this.processedMessages && this.processedMessages.has(messageId)) {
+            console.log('⚠️ Message already processed, skipping duplicate response');
+            return;
+          }
+
+          // Track processed messages (simple in-memory cache)
+          if (!this.processedMessages) {
+            this.processedMessages = new Set();
+          }
+          this.processedMessages.add(messageId);
+
           try {
             console.log('Calling SMS service...');
             const smsResult = await this.smsService.sendSMS(phoneNumber, result.responseMessage);
