@@ -608,6 +608,144 @@ class Database {
     });
   }
 
+  // Response reporting methods
+  async getCampaignResponseReport(campaignId) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT
+          cr.phone_number,
+          cr.first_name,
+          cr.last_name,
+          cr.response_keyword,
+          cr.response_received_at,
+          c.campaign_name,
+          c.created_at as campaign_created_at
+        FROM campaign_recipients cr
+        JOIN campaigns c ON cr.campaign_id = c.campaign_id
+        WHERE cr.campaign_id = ? AND cr.response_keyword IS NOT NULL
+        ORDER BY cr.response_received_at DESC
+      `;
+
+      this.db.all(query, [campaignId], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getResponsesByType(campaignId, responseType) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT
+          cr.phone_number,
+          cr.first_name,
+          cr.last_name,
+          cr.response_keyword,
+          cr.response_received_at,
+          c.campaign_name
+        FROM campaign_recipients cr
+        JOIN campaigns c ON cr.campaign_id = c.campaign_id
+        WHERE cr.campaign_id = ? AND UPPER(cr.response_keyword) = UPPER(?)
+        ORDER BY cr.response_received_at DESC
+      `;
+
+      this.db.all(query, [campaignId, responseType], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getAllCampaignResponses(campaignId = null, startDate = null, endDate = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT
+          c.campaign_id,
+          c.campaign_name,
+          cr.phone_number,
+          cr.first_name,
+          cr.last_name,
+          cr.response_keyword,
+          cr.response_received_at,
+          c.created_at as campaign_created_at
+        FROM campaign_recipients cr
+        JOIN campaigns c ON cr.campaign_id = c.campaign_id
+        WHERE cr.response_keyword IS NOT NULL
+      `;
+
+      const params = [];
+
+      if (campaignId) {
+        query += ` AND cr.campaign_id = ?`;
+        params.push(campaignId);
+      }
+
+      if (startDate) {
+        query += ` AND DATE(cr.response_received_at) >= ?`;
+        params.push(startDate);
+      }
+
+      if (endDate) {
+        query += ` AND DATE(cr.response_received_at) <= ?`;
+        params.push(endDate);
+      }
+
+      query += ` ORDER BY cr.response_received_at DESC`;
+
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getResponseSummary(campaignId = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT
+          c.campaign_id,
+          c.campaign_name,
+          c.response_mode,
+          c.total_recipients,
+          COUNT(CASE WHEN UPPER(cr.response_keyword) = 'YES' THEN 1 END) as yes_responses,
+          COUNT(CASE WHEN UPPER(cr.response_keyword) = 'NO' THEN 1 END) as no_responses,
+          COUNT(CASE WHEN cr.response_keyword IS NOT NULL AND UPPER(cr.response_keyword) NOT IN ('YES', 'NO') THEN 1 END) as other_responses,
+          COUNT(CASE WHEN cr.response_keyword IS NOT NULL THEN 1 END) as total_responses,
+          COUNT(CASE WHEN cr.response_keyword IS NULL THEN 1 END) as no_response
+        FROM campaigns c
+        LEFT JOIN campaign_recipients cr ON c.campaign_id = cr.campaign_id
+        WHERE c.response_mode = 'two-way'
+      `;
+
+      const params = [];
+
+      if (campaignId) {
+        query += ` AND c.campaign_id = ?`;
+        params.push(campaignId);
+      }
+
+      query += ` GROUP BY c.campaign_id, c.campaign_name, c.response_mode, c.total_recipients
+                 ORDER BY c.created_at DESC`;
+
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
   // Close database connection
   close() {
     if (this.db) {

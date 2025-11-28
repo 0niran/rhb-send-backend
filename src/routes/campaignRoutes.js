@@ -61,4 +61,40 @@ router.post('/webhook/inbound', async (req, res) => {
   await campaignController.processInboundMessage(req, res);
 });
 
+// Response reporting routes
+router.get('/responses/summary', async (req, res) => {
+  if (!campaignController) {
+    return res.status(500).json({ success: false, error: 'Campaign controller not initialized' });
+  }
+  await campaignController.getResponseSummary(req, res);
+});
+
+router.get('/responses/all', async (req, res) => {
+  if (!campaignController) {
+    return res.status(500).json({ success: false, error: 'Campaign controller not initialized' });
+  }
+  await campaignController.getAllCampaignResponses(req, res);
+});
+
+router.get('/responses/export', async (req, res) => {
+  if (!campaignController) {
+    return res.status(500).json({ success: false, error: 'Campaign controller not initialized' });
+  }
+  await campaignController.exportResponsesToCSV(req, res);
+});
+
+router.get('/:campaignId/responses', async (req, res) => {
+  if (!campaignController) {
+    return res.status(500).json({ success: false, error: 'Campaign controller not initialized' });
+  }
+  await campaignController.getCampaignResponseReport(req, res);
+});
+
+router.get('/:campaignId/responses/:responseType', async (req, res) => {
+  if (!campaignController) {
+    return res.status(500).json({ success: false, error: 'Campaign controller not initialized' });
+  }
+  await campaignController.getResponsesByType(req, res);
+});
+
 module.exports = { router, initializeCampaignController };

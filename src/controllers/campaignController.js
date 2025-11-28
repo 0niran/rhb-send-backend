@@ -535,6 +535,123 @@ class CampaignController {
       });
     }
   }
+
+  // Response reporting endpoints
+  async getCampaignResponseReport(req, res) {
+    try {
+      const { campaignId } = req.params;
+      const responses = await this.database.getCampaignResponseReport(campaignId);
+
+      res.json({
+        success: true,
+        data: responses
+      });
+    } catch (error) {
+      console.error('Error fetching campaign response report:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch campaign response report'
+      });
+    }
+  }
+
+  async getResponsesByType(req, res) {
+    try {
+      const { campaignId, responseType } = req.params;
+      const responses = await this.database.getResponsesByType(campaignId, responseType);
+
+      res.json({
+        success: true,
+        data: responses
+      });
+    } catch (error) {
+      console.error('Error fetching responses by type:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch responses by type'
+      });
+    }
+  }
+
+  async getAllCampaignResponses(req, res) {
+    try {
+      const { campaignId, startDate, endDate } = req.query;
+      const responses = await this.database.getAllCampaignResponses(campaignId, startDate, endDate);
+
+      res.json({
+        success: true,
+        data: responses
+      });
+    } catch (error) {
+      console.error('Error fetching all campaign responses:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch campaign responses'
+      });
+    }
+  }
+
+  async getResponseSummary(req, res) {
+    try {
+      const { campaignId } = req.query;
+      const summary = await this.database.getResponseSummary(campaignId);
+
+      res.json({
+        success: true,
+        data: summary
+      });
+    } catch (error) {
+      console.error('Error fetching response summary:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch response summary'
+      });
+    }
+  }
+
+  // Export responses to CSV
+  async exportResponsesToCSV(req, res) {
+    try {
+      const { campaignId, responseType, startDate, endDate } = req.query;
+
+      let responses;
+      if (responseType) {
+        responses = await this.database.getResponsesByType(campaignId, responseType);
+      } else {
+        responses = await this.database.getAllCampaignResponses(campaignId, startDate, endDate);
+      }
+
+      // Generate CSV content
+      let csvContent = 'Campaign Name,Phone Number,First Name,Last Name,Response,Response Date\n';
+
+      responses.forEach(response => {
+        const row = [
+          response.campaign_name || '',
+          response.phone_number || '',
+          response.first_name || '',
+          response.last_name || '',
+          response.response_keyword || '',
+          response.response_received_at || ''
+        ].map(field => `"${field}"`).join(',');
+
+        csvContent += row + '\n';
+      });
+
+      // Set headers for file download
+      const filename = `campaign_responses_${campaignId || 'all'}_${responseType || 'all'}_${new Date().toISOString().split('T')[0]}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvContent);
+
+    } catch (error) {
+      console.error('Error exporting responses to CSV:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to export responses'
+      });
+    }
+  }
 }
 
 module.exports = CampaignController;
